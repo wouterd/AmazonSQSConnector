@@ -1,6 +1,6 @@
 # Mendix Amazon SQS Connector (1.0)
 
-This module provides access to SQS connector.
+This module provides access to SQS and provides an action set for receiving and sending messages as well as configuration, exploration and monitoring.
 
 ## Features
 

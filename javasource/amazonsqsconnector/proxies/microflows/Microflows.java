@@ -189,6 +189,19 @@ public class Microflows
 			throw new MendixRuntimeException(e);
 		}
 	}
+	public static void iVK_SaveAwsConfig(IContext context, amazonsqsconnector.proxies.AwsConfig _awsConfig)
+	{
+		try
+		{
+			Map<java.lang.String, Object> params = new HashMap<java.lang.String, Object>();
+			params.put("AwsConfig", _awsConfig == null ? null : _awsConfig.getMendixObject());
+			Core.execute(context, "AmazonSQSConnector.IVK_SaveAwsConfig", params);
+		}
+		catch (CoreException e)
+		{
+			throw new MendixRuntimeException(e);
+		}
+	}
 	public static void iVK_SendMessage(IContext context, amazonsqsconnector.proxies.SendMessageRequest _sendMessageRequest)
 	{
 		try

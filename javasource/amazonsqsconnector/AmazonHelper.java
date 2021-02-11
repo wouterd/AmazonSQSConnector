@@ -1,6 +1,7 @@
 package amazonsqsconnector;
 
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -21,19 +22,26 @@ import software.amazon.awssdk.services.sqs.model.MessageSystemAttributeName;
 
 public class AmazonHelper
 {
-	
 	public final static ILogNode LOGGER = Core.getLogger("SQS");
+	
+	private static Map<String, SqsClient> cache = new HashMap<>();
 	
 	public static SqsClient getSqsClient(AwsConfig config) throws CoreException {
 		
-		AwsBasicCredentials credentials = AwsBasicCredentials.create(
-				config.getAccessKey(), config.getSecretKey());
-		Region region = Region.of(config.getRegionName());
-		return SqsClient.builder().credentialsProvider(
-				StaticCredentialsProvider.create(credentials))
-				.httpClientBuilder(ApacheHttpClient.builder())
-				.region(region)
-				.build();
+		if (cache.containsKey(config.getIdentifier())) {
+			return cache.get(config.getIdentifier());
+		} else {
+			AwsBasicCredentials credentials = AwsBasicCredentials.create(
+					config.getAccessKey(), config.getSecretKey());
+			Region region = Region.of(config.getRegionName());
+			SqsClient newClient = SqsClient.builder().credentialsProvider(
+					StaticCredentialsProvider.create(credentials))
+					.httpClientBuilder(ApacheHttpClient.builder())
+					.region(region)
+					.build();
+			cache.put(config.getIdentifier(), newClient);
+			return newClient;
+		}
 	}
 	
 	public static amazonsqsconnector.proxies.Message getMendixMessageFromSQSMessage(

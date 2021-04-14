@@ -9,8 +9,12 @@
 
 package amazonsqsconnector.actions;
 
+import java.util.Map.Entry;
+
 import com.mendix.core.Core;
+import com.mendix.core.CoreException;
 import com.mendix.systemwideinterfaces.core.IContext;
+import com.mendix.systemwideinterfaces.core.IDataType;
 import com.mendix.webui.CustomJavaAction;
 import com.mendix.systemwideinterfaces.core.IMendixObject;
 
@@ -40,9 +44,20 @@ public class ExecuteMicroflowInSeparateTransaction extends CustomJavaAction<IMen
 		try {
 			Object r;
 			if (this.microflowArgument != null) {
-				r = Core.execute(context, microflow, microflowArgument);
+				String argument = null;
+				for(Entry<String, IDataType> entry : Core.getInputParameters(microflow).entrySet()) {
+					if (entry.getValue().checkTypeForValue(this.microflowArgument)) {
+						argument = entry.getKey();
+						break;
+					}
+				}
+					
+				if (argument == null) {
+					throw new CoreException("No suitable argument could be found in microflow " + microflow + " for " + microflowArgument.getType());
+				}
+				r = Core.microflowCall(microflow).withParam(argument, microflowArgument).execute(context);
 			} else {
-				r = Core.execute(context, microflow); 
+				r = Core.microflowCall(microflow).execute(context);
 			}
 			if (r != null && r instanceof IMendixObject) {
 				result = (IMendixObject) r;

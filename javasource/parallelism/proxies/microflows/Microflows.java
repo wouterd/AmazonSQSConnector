@@ -16,14 +16,7 @@ public class Microflows
 	// These are the microflows for the Parallelism module
 	public static void beforeShutdown(IContext context)
 	{
-		try
-		{
-			Map<java.lang.String, Object> params = new HashMap<java.lang.String, Object>();
-			Core.execute(context, "Parallelism.BeforeShutdown", params);
-		}
-		catch (CoreException e)
-		{
-			throw new MendixRuntimeException(e);
-		}
+		Map<java.lang.String, Object> params = new HashMap<>();
+		Core.microflowCall("Parallelism.BeforeShutdown").withParams(params).execute(context);
 	}
 }

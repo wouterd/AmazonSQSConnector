@@ -89,8 +89,9 @@ public class AmazonHelper {
         if (config instanceof CognitoConfig) {
             CognitoConfig cfg = (CognitoConfig) config;
 
+            var region = Region.of(cfg.getRegionName());
             var creds = getCredentialsThroughCognito(cfg.getUsername(), cfg.getPassword(),
-                    cfg.getAccessKey(), cfg.getSecretKey(), cfg.getIdentityPoolId());
+                    cfg.getAccessKey(), cfg.getSecretKey(), cfg.getIdentityPoolId(), region);
 
             var awsCreds = AwsSessionCredentials.create(
                     creds.accessKeyId(), creds.secretKey(), creds.sessionToken());
@@ -104,9 +105,9 @@ public class AmazonHelper {
     }
 
     private static Credentials getCredentialsThroughCognito(String username, String password, String clientId,
-                                                            String clientSecret, String identityPoolId) {
+                                                            String clientSecret, String identityPoolId, Region region) {
         var provider = CognitoIdentityProviderClient.builder()
-                .region(Region.EU_WEST_1)
+                .region(region)
                 .credentialsProvider(AnonymousCredentialsProvider.create())
                 .build();
 
@@ -135,7 +136,7 @@ public class AmazonHelper {
         var providerId = jwt.getString("iss").replace("https://", "");
 
         var identity = CognitoIdentityClient.builder()
-                .region(Region.EU_WEST_1)
+                .region(region)
                 .credentialsProvider(AnonymousCredentialsProvider.create())
                 .build();
 

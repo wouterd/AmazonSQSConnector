@@ -124,4 +124,10 @@ public class Microflows
 		params.put("Queue", _queue == null ? null : _queue.getMendixObject());
 		Core.microflowCall("AmazonSQSConnector.IVK_SendMessageRequest").withParams(params).execute(context);
 	}
+	public static void openRightEditPage(IContext context, amazonsqsconnector.proxies.AwsConfig _awsConfig)
+	{
+		Map<java.lang.String, Object> params = new HashMap<>();
+		params.put("AwsConfig", _awsConfig == null ? null : _awsConfig.getMendixObject());
+		Core.microflowCall("AmazonSQSConnector.OpenRightEditPage").withParams(params).execute(context);
+	}
 }

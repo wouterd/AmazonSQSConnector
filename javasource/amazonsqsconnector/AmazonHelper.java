@@ -124,18 +124,13 @@ public class AmazonHelper {
 
         final InitiateAuthResponse response = provider.initiateAuth(req);
 
-        LOGGER.info(response.challengeNameAsString());
-
-        LOGGER.info(response.authenticationResult().accessToken());
-        LOGGER.info(response.authenticationResult().idToken());
+        LOGGER.info("Successfully logged in using Cognito");
 
         var token = response.authenticationResult().idToken();
         var payload = token.split("\\.")[1];
         var decoded = Base64.getDecoder().decode(payload);
         var jwtSection = new String(decoded, StandardCharsets.UTF_8);
         var jwt = new JSONObject(jwtSection);
-
-        LOGGER.info(jwtSection);
 
         var providerId = jwt.getString("iss").replace("https://", "");
 
@@ -153,22 +148,16 @@ public class AmazonHelper {
         final GetIdResponse idResponse = identity.getId(idReq);
         final String identityId = idResponse.identityId();
 
-        LOGGER.info(identityId);
-
         var credReq = GetCredentialsForIdentityRequest.builder()
                 .identityId(identityId)
                 .logins(logins)
                 .build();
 
         final GetCredentialsForIdentityResponse credsResp = identity.getCredentialsForIdentity(credReq);
-        final Credentials creds = credsResp.credentials();
 
-        LOGGER.info(creds.accessKeyId());
-        LOGGER.info(creds.secretKey());
-        LOGGER.info(creds.sessionToken());
-        LOGGER.info(creds.expiration().toString());
+        LOGGER.info("Successfully acquired AWS credentials through Cognito");
 
-        return creds;
+        return credsResp.credentials();
     }
 
     private static SqsClient createSqsClient(AwsConfig config, AwsCredentials credentials) {

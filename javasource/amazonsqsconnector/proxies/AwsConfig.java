@@ -71,6 +71,9 @@ public class AwsConfig
 	 */
 	public static amazonsqsconnector.proxies.AwsConfig initialize(com.mendix.systemwideinterfaces.core.IContext context, com.mendix.systemwideinterfaces.core.IMendixObject mendixObject)
 	{
+		if (com.mendix.core.Core.isSubClassOf("AmazonSQSConnector.CognitoConfig", mendixObject.getType()))
+			return amazonsqsconnector.proxies.CognitoConfig.initialize(context, mendixObject);
+
 		return new amazonsqsconnector.proxies.AwsConfig(context, mendixObject);
 	}
 
@@ -80,7 +83,7 @@ public class AwsConfig
 		return amazonsqsconnector.proxies.AwsConfig.initialize(context, mendixObject);
 	}
 
-	public static java.util.List<amazonsqsconnector.proxies.AwsConfig> load(com.mendix.systemwideinterfaces.core.IContext context, java.lang.String xpathConstraint) throws com.mendix.core.CoreException
+	public static java.util.List<? extends amazonsqsconnector.proxies.AwsConfig> load(com.mendix.systemwideinterfaces.core.IContext context, java.lang.String xpathConstraint) throws com.mendix.core.CoreException
 	{
 		java.util.List<amazonsqsconnector.proxies.AwsConfig> result = new java.util.ArrayList<amazonsqsconnector.proxies.AwsConfig>();
 		for (com.mendix.systemwideinterfaces.core.IMendixObject obj : com.mendix.core.Core.retrieveXPathQuery(context, "//AmazonSQSConnector.AwsConfig" + xpathConstraint))

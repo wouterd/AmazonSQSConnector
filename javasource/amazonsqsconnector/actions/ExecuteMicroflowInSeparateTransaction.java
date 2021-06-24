@@ -10,7 +10,6 @@
 package amazonsqsconnector.actions;
 
 import java.util.Map.Entry;
-
 import com.mendix.core.Core;
 import com.mendix.core.CoreException;
 import com.mendix.systemwideinterfaces.core.IContext;

@@ -106,28 +106,9 @@ public class AmazonHelper {
 
     private static Credentials getCredentialsThroughCognito(String username, String password, String clientId,
                                                             String clientSecret, String identityPoolId, Region region) {
-        var provider = CognitoIdentityProviderClient.builder()
-                .region(region)
-                .credentialsProvider(AnonymousCredentialsProvider.create())
-                .build();
 
-        var secretHash = calculateSecretHash(clientId, clientSecret, username);
+        String token = getIdToken(username, password, clientId, clientSecret, region);
 
-        var params = new HashMap<String, String>();
-        params.put("USERNAME", username);
-        params.put("PASSWORD", password);
-        params.put("SECRET_HASH", secretHash);
-        var req = InitiateAuthRequest.builder()
-                .clientId(clientId)
-                .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
-                .authParameters(params)
-                .build();
-
-        final InitiateAuthResponse response = provider.initiateAuth(req);
-
-        LOGGER.info("Successfully logged in using Cognito");
-
-        var token = response.authenticationResult().idToken();
         var payload = token.split("\\.")[1];
         var decoded = Base64.getDecoder().decode(payload);
         var jwtSection = new String(decoded, StandardCharsets.UTF_8);
@@ -135,30 +116,57 @@ public class AmazonHelper {
 
         var providerId = jwt.getString("iss").replace("https://", "");
 
-        var identity = CognitoIdentityClient.builder()
+        try (var identity = CognitoIdentityClient.builder()
                 .region(region)
                 .credentialsProvider(AnonymousCredentialsProvider.create())
-                .build();
+                .build()) {
 
-        final Map<String, String> logins = Collections.singletonMap(providerId, token);
-        var idReq = GetIdRequest.builder()
-                .identityPoolId(identityPoolId)
-                .logins(logins)
-                .build();
+            final Map<String, String> logins = Collections.singletonMap(providerId, token);
+            var idReq = GetIdRequest.builder()
+                    .identityPoolId(identityPoolId)
+                    .logins(logins)
+                    .build();
 
-        final GetIdResponse idResponse = identity.getId(idReq);
-        final String identityId = idResponse.identityId();
+            final GetIdResponse idResponse = identity.getId(idReq);
+            final String identityId = idResponse.identityId();
 
-        var credReq = GetCredentialsForIdentityRequest.builder()
-                .identityId(identityId)
-                .logins(logins)
-                .build();
+            var credReq = GetCredentialsForIdentityRequest.builder()
+                    .identityId(identityId)
+                    .logins(logins)
+                    .build();
 
-        final GetCredentialsForIdentityResponse credsResp = identity.getCredentialsForIdentity(credReq);
+            final GetCredentialsForIdentityResponse credsResp = identity.getCredentialsForIdentity(credReq);
 
-        LOGGER.info("Successfully acquired AWS credentials through Cognito");
+            LOGGER.info("Successfully acquired AWS credentials through Cognito");
 
-        return credsResp.credentials();
+            return credsResp.credentials();
+        }
+    }
+
+    private static String getIdToken(String username, String password, String clientId, String clientSecret, Region region) {
+        try (var provider = CognitoIdentityProviderClient.builder()
+                .region(region)
+                .credentialsProvider(AnonymousCredentialsProvider.create())
+                .build()) {
+
+            var secretHash = calculateSecretHash(clientId, clientSecret, username);
+
+            var params = new HashMap<String, String>();
+            params.put("USERNAME", username);
+            params.put("PASSWORD", password);
+            params.put("SECRET_HASH", secretHash);
+            var req = InitiateAuthRequest.builder()
+                    .clientId(clientId)
+                    .authFlow(AuthFlowType.USER_PASSWORD_AUTH)
+                    .authParameters(params)
+                    .build();
+
+            final InitiateAuthResponse response = provider.initiateAuth(req);
+
+            LOGGER.info("Successfully logged in using Cognito");
+
+            return response.authenticationResult().idToken();
+        }
     }
 
     private static SqsClient createSqsClient(AwsConfig config, AwsCredentials credentials) {
